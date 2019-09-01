@@ -1,0 +1,10 @@
+type Strs {
+  combined: String,
+  str1: String,
+  str2: String
+}
+type UserInfo {
+  id: Int,
+  name: String, 
+  email: String
+}
