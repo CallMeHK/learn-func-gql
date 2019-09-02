@@ -8,3 +8,25 @@ type UserInfo {
   name: String, 
   email: String
 }
+type LogInRes {
+  success: Boolean,
+  token: String
+}
+type VerifyTokenRes {
+  success: Boolean!,
+  id: Int, 
+  name: String, 
+  iat: Int
+  error: String
+  }
+type Todo {
+  id: Int,
+  todo: String,
+  done: Boolean,
+  user_id: Int,
+  error: String
+}
+type Todos {
+  todos: [Todo],
+  error: String
+}

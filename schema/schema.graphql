@@ -16,3 +16,21 @@ type Query {
 type Query {
   getPgUser(name: String!): UserInfo
 }
+type Query {
+  loginUser(name: String!, password: String!): LogInRes
+}
+type Query {
+  verifyJwt(token: String!): VerifyTokenRes
+}
+type Query {
+  getTodos: Todos
+}
+type Query {
+  addTodo(todo: String, done: Boolean, user_id: Int): Todo
+}
+type Query {
+  getOneTodo(id: Int!): Todo
+}
+type Query {
+  deleteTodo(id: Int!): Todo
+}
