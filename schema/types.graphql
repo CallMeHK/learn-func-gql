@@ -30,3 +30,9 @@ type Todos {
   todos: [Todo],
   error: String
 }
+type User {
+  name: String,
+  email: String,
+  id: Int,
+  password: String
+}

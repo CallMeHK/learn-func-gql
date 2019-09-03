@@ -1,4 +1,4 @@
-import { getPgTimeFactory, getPgUserWithPasswordFactory, getPgUserFactory } from '../postgres/queries'
+import { getPgTimeFactory, getPgUserWithPasswordFactory, getPgUserFactory } from '../resolver-factories/postgres/queries'
 import { Pool } from 'pg'
 
 const rootPgReducer = (pool: Pool) => {

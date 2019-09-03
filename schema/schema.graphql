@@ -34,3 +34,9 @@ type Query {
 type Query {
   deleteTodo(id: Int!): Todo
 }
+type Query {
+  editTodo(id: Int!, todo: String, done: Boolean): Todo
+}
+type Query {
+  createUser(name: String!, email: String!, password: String!): User
+}

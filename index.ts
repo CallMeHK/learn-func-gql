@@ -5,8 +5,8 @@ import express from 'express'
 import { importSchema } from 'graphql-import'
 import graphqlHTTP from 'express-graphql'
 import { buildSchema } from 'graphql'
-import { root } from './reducers/root'
-import { createPgPool } from './postgres/connection'
+import { root } from './resolvers/root'
+import { createPgPool } from './resolver-factories/postgres/connection'
 
 const pool = createPgPool()
 

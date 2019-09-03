@@ -1,9 +1,9 @@
-import { basicReducers } from './basic-reducers'
-import { rootPgReducer } from './pg-reducers'
-import { createPgPool } from '../postgres/connection'
+import { basicReducers } from './basic-resolvers'
+import { rootPgReducer } from './pg-resolvers'
+import { createPgPool } from '../resolver-factories/postgres/connection'
 import { Pool } from 'pg'
-import { rootIdentityReducer } from './identity-reducers';
-import { rootTodosReducer } from './todos-reducer'
+import { rootIdentityReducer } from './identity-resolvers';
+import { rootTodosReducer } from './todos-resolvers'
 
 export interface IRootFactory {
   createPool: any

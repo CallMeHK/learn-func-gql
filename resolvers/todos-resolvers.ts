@@ -1,14 +1,17 @@
 import {
   addLoggedInTodosFactory,
   addTodoFactory,
+  createEditString,
   deleteLoggedInTodoFactory,
   deleteTodoFactory,
+  editLoggedInTodoFactory,
+  editTodoFactory,
   getLoggedInTodosFactory,
   getOneLoggedInTodoFactory,
   getOneTodoFactory,
   getTodosFactory,
-} from '../todos/todo-crud'
-import { verifyJwtFactory } from '../identity/jwt-sign-verify'
+} from '../resolver-factories/todos/todo-crud'
+import { verifyJwtFactory } from '../resolver-factories/identity/jwt-sign-verify'
 import jwt from 'jsonwebtoken'
 import { Pool } from 'pg'
 
@@ -40,6 +43,14 @@ const rootTodosReducer = (pool: Pool) => {
       pool,
       deleteTodoFactory,
       verifyJwtFactory,
+      jwt,
+      secret
+    }),
+    editTodo: editLoggedInTodoFactory({
+      pool,
+      editTodoFactory,
+      verifyJwtFactory,
+      createEditString,
       jwt,
       secret
     })
