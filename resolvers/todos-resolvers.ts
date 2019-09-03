@@ -1,3 +1,5 @@
+import { Pool } from 'pg'
+
 import {
   addLoggedInTodos,
   deleteLoggedInTodo,
@@ -5,7 +7,6 @@ import {
   getLoggedInTodos,
   getOneLoggedInTodo,
 } from '../resolver-factories/todos/todo-crud'
-import { Pool } from 'pg'
 
 const rootTodosReducer = (pool: Pool) => {
   return {

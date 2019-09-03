@@ -5,7 +5,6 @@ export interface IGetPgUser {
 }
 
 export interface IGetPgUserFactory {
-  pool: Pool,
   getPgUserWithPasswordFactory: typeof getPgUserWithPasswordFactory
 }
 
@@ -36,9 +35,10 @@ const getPgUserWithPasswordFactory = (pool: Pool) =>
   }
 
 const getPgUserFactory = (dependencies: IGetPgUserFactory) => {
-  const { pool, getPgUserWithPasswordFactory } = dependencies
-  const getPgUserWithPassword = getPgUserWithPasswordFactory(pool)
-  return async ({ name }: IGetPgUser): Promise<IUserInfo> => {
+  const { getPgUserWithPasswordFactory } = dependencies
+
+  return (pool: Pool) => async ({ name }: IGetPgUser): Promise<IUserInfo> => {
+    const getPgUserWithPassword = getPgUserWithPasswordFactory(pool)
     const user = await getPgUserWithPassword({ name })
     return {
       id: user.id,
@@ -48,4 +48,6 @@ const getPgUserFactory = (dependencies: IGetPgUserFactory) => {
   }
 }
 
-export { getPgTimeFactory, getPgUserWithPasswordFactory, getPgUserFactory }
+const getPgUser = getPgUserFactory({ getPgUserWithPasswordFactory })
+
+export { getPgUser, getPgTimeFactory, getPgUserWithPasswordFactory, getPgUserFactory }

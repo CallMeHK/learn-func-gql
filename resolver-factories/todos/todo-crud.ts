@@ -1,6 +1,7 @@
-import { Pool } from 'pg'
 import jwt from 'jsonwebtoken'
-import { verifyJwtFactory } from '../identity/jwt-sign-verify'
+import { Pool } from 'pg'
+
+import { verifyJwt } from '../identity/jwt-sign-verify'
 
 export interface ITodosFactory {
   pool: Pool
@@ -27,37 +28,27 @@ export interface IAuthError {
 
 export interface IGetLoggedInTodosFactory {
   getTodos: typeof getTodos,
-  verifyJwtFactory: typeof verifyJwtFactory,
-  jwt: typeof jwt,
-  secret: string
+  verifyJwt: typeof verifyJwt,
 }
 
 export interface IAddLoggedInTodosFactory {
   addTodo: typeof addTodo,
-  verifyJwtFactory: typeof verifyJwtFactory,
-  jwt: typeof jwt,
-  secret: string
+  verifyJwt: typeof verifyJwt,
 }
 
 export interface IGetOneLoggedInTodosFactory {
   getOneTodo: typeof getOneTodo,
-  verifyJwtFactory: typeof verifyJwtFactory,
-  jwt: typeof jwt,
-  secret: string
+  verifyJwt: typeof verifyJwt,
 }
 
 export interface IDeleteLoggedInTodosFactory {
   deleteTodo: typeof deleteTodo,
-  verifyJwtFactory: typeof verifyJwtFactory,
-  jwt: typeof jwt,
-  secret: string
+  verifyJwt: typeof verifyJwt,
 }
 
 export interface IEditLoggedInTodosFactory {
   editTodo: typeof editTodo,
-  verifyJwtFactory: typeof verifyJwtFactory,
-  jwt: typeof jwt,
-  secret: string
+  verifyJwt: typeof verifyJwt,
 }
 
 const getTodos = (pool: Pool) => {
@@ -127,13 +118,11 @@ const getLoggedInTodosFactory = (dependencies: IGetLoggedInTodosFactory) => {
 
   const {
     getTodos,
-    verifyJwtFactory,
-    jwt,
-    secret } = dependencies
+    verifyJwt,
+ } = dependencies
 
   return (pool: Pool) => {
     const getTodosPool = getTodos(pool)
-    const verifyJwt = verifyJwtFactory({ secret, jwt })
 
     return async (__: any, { headers }: { headers: any }): Promise<ITodos | IAuthError> => {
       const isJwtValid = verifyJwt({ token: headers.auth_token })
@@ -149,25 +138,15 @@ const getLoggedInTodosFactory = (dependencies: IGetLoggedInTodosFactory) => {
   }
 }
 
-const getLoggedInTodos = getLoggedInTodosFactory({
-  getTodos,
-  verifyJwtFactory,
-  jwt,
-  secret: process.env.JWT_SECRET
-})
-
 const addLoggedInTodosFactory = (dependencies: IAddLoggedInTodosFactory) => {
 
   const {
     addTodo,
-    verifyJwtFactory,
-    jwt,
-    secret } = dependencies
+    verifyJwt} = dependencies
 
   return (pool: Pool) => {
 
     const addTodoPool = addTodo(pool)
-    const verifyJwt = verifyJwtFactory({ jwt, secret })
 
     return async ({ todo, done }: { todo: string, done?: boolean }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
       const isJwtValid = verifyJwt({ token: headers.auth_token })
@@ -183,24 +162,15 @@ const addLoggedInTodosFactory = (dependencies: IAddLoggedInTodosFactory) => {
   }
 }
 
-const addLoggedInTodos = addLoggedInTodosFactory({
-  addTodo,
-  verifyJwtFactory,
-  jwt,
-  secret: process.env.JWT_SECRET
-})
 
 const getOneLoggedInTodoFactory = (dependencies: IGetOneLoggedInTodosFactory) => {
 
   const {
     getOneTodo,
-    verifyJwtFactory,
-    jwt,
-    secret } = dependencies
+    verifyJwt } = dependencies
 
   return (pool: Pool) => {
     const getOneTodoPool = getOneTodo(pool)
-    const verifyJwt = verifyJwtFactory({ jwt, secret })
 
     return async ({ id }: { id: number }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
       const isJwtValid = verifyJwt({ token: headers.auth_token })
@@ -217,24 +187,14 @@ const getOneLoggedInTodoFactory = (dependencies: IGetOneLoggedInTodosFactory) =>
   }
 }
 
-const getOneLoggedInTodo = getOneLoggedInTodoFactory({
-  getOneTodo,
-  verifyJwtFactory,
-  jwt,
-  secret: process.env.JWT_SECRET
-})
-
 const deleteLoggedInTodoFactory = (dependencies: IDeleteLoggedInTodosFactory) => {
 
   const {
     deleteTodo,
-    verifyJwtFactory,
-    jwt,
-    secret } = dependencies
+    verifyJwt } = dependencies
 
   return (pool: Pool) => {
     const deleteTodoPool = deleteTodo(pool)
-    const verifyJwt = verifyJwtFactory({ jwt, secret })
 
     return async ({ id }: { id: number }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
       const isJwtValid = verifyJwt({ token: headers.auth_token })
@@ -251,24 +211,14 @@ const deleteLoggedInTodoFactory = (dependencies: IDeleteLoggedInTodosFactory) =>
   }
 }
 
-const deleteLoggedInTodo = deleteLoggedInTodoFactory({
-  deleteTodo,
-  verifyJwtFactory,
-  jwt,
-  secret: process.env.JWT_SECRET
-})
-
 const editLoggedInTodoFactory = (dependencies: IEditLoggedInTodosFactory) => {
 
   const { 
     editTodo,
-    verifyJwtFactory,
-    jwt,
-    secret } = dependencies
+    verifyJwt } = dependencies
     
     return (pool: Pool) => {
       const editTodoPool = editTodo(pool)
-      const verifyJwt = verifyJwtFactory({ jwt, secret })
     
     return async ({ id, todo, done }: { id: number, todo?: string, done?: boolean }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
     const isJwtValid = verifyJwt({ token: headers.auth_token })
@@ -284,11 +234,29 @@ const editLoggedInTodoFactory = (dependencies: IEditLoggedInTodosFactory) => {
   }}
 }
 
+const getLoggedInTodos = getLoggedInTodosFactory({
+  getTodos,
+  verifyJwt
+})
+
+const addLoggedInTodos = addLoggedInTodosFactory({
+  addTodo,
+  verifyJwt
+})
+
+const getOneLoggedInTodo = getOneLoggedInTodoFactory({
+  getOneTodo,
+  verifyJwt
+})
+
+const deleteLoggedInTodo = deleteLoggedInTodoFactory({
+  deleteTodo,
+  verifyJwt
+})
+
 const editLoggedInTodo = editLoggedInTodoFactory({ 
   editTodo,
-  verifyJwtFactory,
-  jwt,
-  secret: process.env.JWT_SECRET
+  verifyJwt
 })
 
 export {

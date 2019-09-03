@@ -21,6 +21,8 @@ const signJwtFactory = (dependencies: IJwtFactory) => {
   }
 }
 
+const signJwt = signJwtFactory({ jwt, secret: process.env.JWT_SECRET })
+
 const verifyJwtFactory = (dependencies: IJwtFactory) => {
   const { jwt, secret } = dependencies
   return ({ token }: { token: string }): IJwtVerifyResponse => {
@@ -32,4 +34,14 @@ const verifyJwtFactory = (dependencies: IJwtFactory) => {
   }
 }
 
-export { signJwtFactory, verifyJwtFactory }
+const verifyJwt = verifyJwtFactory({
+  jwt,
+  secret: process.env.JWT_SECRET
+})
+
+export {
+  signJwtFactory,
+  signJwt,
+  verifyJwtFactory,
+  verifyJwt
+}

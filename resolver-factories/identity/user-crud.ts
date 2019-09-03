@@ -6,7 +6,6 @@ export interface IHashPassword {
 }
 
 export interface ICreateUserFactory {
-  pool: Pool,
   bcrypt: typeof bcrypt,
   hashPasswordFactory: typeof hashPasswordFactory
 }
@@ -27,12 +26,13 @@ const hashPasswordFactory = (dependencies: IHashPassword) => {
 
 const createUserFactory = (dependencies: ICreateUserFactory) => {
   const {
-    pool,
     bcrypt,
     hashPasswordFactory
   } = dependencies
-  const hashPassword = hashPasswordFactory({bcrypt})
-  return async ({ name, email, password }: ICreateUser) => {
+  return (pool: Pool) => {
+    const hashPassword = hashPasswordFactory({bcrypt})
+    
+    return async ({ name, email, password }: ICreateUser) => {
     const hashedPassword = await hashPassword(password)
     const newUser = {
       name,
@@ -43,10 +43,14 @@ const createUserFactory = (dependencies: ICreateUserFactory) => {
     VALUES ('${newUser.name}', '${newUser.email}', '${newUser.password}' ) 
     RETURNING *`)
     return createUser.rows[0]
-  }
+  }}
 }
+
+const createUser = createUserFactory({bcrypt,
+  hashPasswordFactory})
 
 export {
   hashPasswordFactory,
   createUserFactory,
+  createUser
 }

@@ -10,8 +10,8 @@ export interface IRootFactory {
 }
 
 // TODO: add get time
-const rootFactory = (depencencies: IRootFactory) => () => {
-  const { createPool } = depencencies
+const rootFactory = (dependencies: IRootFactory) => () => {
+  const { createPool } = dependencies
   const pool: Pool = createPool()
 
   return {
