@@ -7,7 +7,6 @@ export interface ITodosFactory {
 }
 
 export interface IEditTodosFactory {
-  pool: Pool,
   createEditString: typeof createEditString
 }
 
@@ -27,49 +26,41 @@ export interface IAuthError {
 }
 
 export interface IGetLoggedInTodosFactory {
-  pool: Pool,
-  getTodosFactory: typeof getTodosFactory,
+  getTodos: typeof getTodos,
   verifyJwtFactory: typeof verifyJwtFactory,
   jwt: typeof jwt,
   secret: string
 }
 
 export interface IAddLoggedInTodosFactory {
-  pool: Pool,
-  addTodoFactory: typeof addTodoFactory,
+  addTodo: typeof addTodo,
   verifyJwtFactory: typeof verifyJwtFactory,
   jwt: typeof jwt,
   secret: string
 }
 
 export interface IGetOneLoggedInTodosFactory {
-  pool: Pool,
-  getOneTodoFactory: typeof getOneTodoFactory,
+  getOneTodo: typeof getOneTodo,
   verifyJwtFactory: typeof verifyJwtFactory,
   jwt: typeof jwt,
   secret: string
 }
 
 export interface IDeleteLoggedInTodosFactory {
-  pool: Pool,
-  deleteTodoFactory: typeof deleteTodoFactory,
+  deleteTodo: typeof deleteTodo,
   verifyJwtFactory: typeof verifyJwtFactory,
   jwt: typeof jwt,
   secret: string
 }
 
 export interface IEditLoggedInTodosFactory {
-  pool: Pool,
-  editTodoFactory: typeof editTodoFactory,
-  createEditString: typeof createEditString,
+  editTodo: typeof editTodo,
   verifyJwtFactory: typeof verifyJwtFactory,
   jwt: typeof jwt,
   secret: string
 }
 
-const getTodosFactory = (dependencies: ITodosFactory) => {
-
-  const { pool } = dependencies
+const getTodos = (pool: Pool) => {
 
   return async ({ user_id }: { user_id: number }): Promise<ITodos> => {
     const todosQuery = await pool.query(`SELECT * FROM todos WHERE user_id=${user_id}`)
@@ -78,9 +69,7 @@ const getTodosFactory = (dependencies: ITodosFactory) => {
   }
 }
 
-const addTodoFactory = (dependencies: ITodosFactory) => {
-
-  const { pool } = dependencies
+const addTodo = (pool: Pool) => {
 
   return async ({ todo, done, user_id }: { todo: string, done?: boolean, user_id: number }): Promise<ITodo> => {
     const todosQuery = await pool.query(`INSERT INTO todos (todo, done, user_id)
@@ -90,10 +79,7 @@ const addTodoFactory = (dependencies: ITodosFactory) => {
   }
 }
 
-const getOneTodoFactory = (dependencies: ITodosFactory) => {
-
-  const { pool } = dependencies
-
+const getOneTodo = (pool: Pool) => {
   return async ({ id, user_id }: { id: number, user_id: number }): Promise<ITodo> => {
     const todosQuery = await pool.query(`SELECT * FROM todos 
     WHERE id=${id} AND user_id=${user_id}`)
@@ -101,10 +87,8 @@ const getOneTodoFactory = (dependencies: ITodosFactory) => {
   }
 }
 
-const deleteTodoFactory = (dependencies: ITodosFactory) => {
-  
-  const { pool } = dependencies
-  
+const deleteTodo = (pool: Pool) => {
+
   return async ({ id, user_id }: { id: number, user_id: number }): Promise<ITodo> => {
     const todosQuery = await pool.query(`DELETE FROM todos 
     WHERE id=${id} AND user_id=${user_id}
@@ -113,10 +97,10 @@ const deleteTodoFactory = (dependencies: ITodosFactory) => {
   }
 }
 
-const createEditString = (edit: {todo?: string, done?:boolean}): string => {
-  if(edit.todo && edit.done!==undefined){
+const createEditString = (edit: { todo?: string, done?: boolean }): string => {
+  if (edit.todo && edit.done !== undefined) {
     return `todo='${edit.todo}', done=${edit.done}`
-  } else if(edit.todo){
+  } else if (edit.todo) {
     return `todo='${edit.todo}'`
   }
   return `done=${edit.done}`
@@ -124,147 +108,205 @@ const createEditString = (edit: {todo?: string, done?:boolean}): string => {
 
 const editTodoFactory = (dependencies: IEditTodosFactory) => {
 
-  const { pool, createEditString } = dependencies
+  const { createEditString } = dependencies
 
-  return async ({ id, user_id, todo, done }: { id: number, user_id: number, todo?: string, done?:boolean }): Promise<ITodo> => {
-    const editString = createEditString({todo, done})
-    const todosQuery = await pool.query(`UPDATE todos 
+  return (pool: Pool) =>
+    async ({ id, user_id, todo, done }: { id: number, user_id: number, todo?: string, done?: boolean }): Promise<ITodo> => {
+      const editString = createEditString({ todo, done })
+      const todosQuery = await pool.query(`UPDATE todos 
     SET ${editString} 
     WHERE id=${id} AND user_id=${user_id}
     RETURNING *`)
-    return todosQuery.rows[0]
-  }
+      return todosQuery.rows[0]
+    }
 }
+
+const editTodo = editTodoFactory({ createEditString })
 
 const getLoggedInTodosFactory = (dependencies: IGetLoggedInTodosFactory) => {
 
-  const { pool,
-    getTodosFactory,
+  const {
+    getTodos,
     verifyJwtFactory,
     jwt,
     secret } = dependencies
-  const getTodos = getTodosFactory({ pool })
-  const verifyJwt = verifyJwtFactory({ secret, jwt })
 
-  return async (__: any, { headers }: { headers: any }): Promise<ITodos | IAuthError> => {
-    const isJwtValid = verifyJwt({ token: headers.auth_token })
-    if (isJwtValid.success) {
-      const todos = await getTodos({ user_id: isJwtValid.id })
-      return todos
-    } else {
-      return Promise.resolve({
-        error: "cannot authenticate jwt"
-      })
+  return (pool: Pool) => {
+    const getTodosPool = getTodos(pool)
+    const verifyJwt = verifyJwtFactory({ secret, jwt })
+
+    return async (__: any, { headers }: { headers: any }): Promise<ITodos | IAuthError> => {
+      const isJwtValid = verifyJwt({ token: headers.auth_token })
+      if (isJwtValid.success) {
+        const todos = await getTodosPool({ user_id: isJwtValid.id })
+        return todos
+      } else {
+        return Promise.resolve({
+          error: "cannot authenticate jwt"
+        })
+      }
     }
   }
 }
+
+const getLoggedInTodos = getLoggedInTodosFactory({
+  getTodos,
+  verifyJwtFactory,
+  jwt,
+  secret: process.env.JWT_SECRET
+})
 
 const addLoggedInTodosFactory = (dependencies: IAddLoggedInTodosFactory) => {
 
-  const { pool,
-    addTodoFactory,
+  const {
+    addTodo,
     verifyJwtFactory,
     jwt,
     secret } = dependencies
-  const addTodo = addTodoFactory({ pool })
-  const verifyJwt = verifyJwtFactory({ jwt, secret })
 
-  return async ({ todo, done }: { todo: string, done?: boolean }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
-    const isJwtValid = verifyJwt({ token: headers.auth_token })
-    if (isJwtValid.success) {
-      const createdTodo = await addTodo({ todo, done, user_id: isJwtValid.id })
-      return createdTodo
-    } else {
-      return Promise.resolve({
-        error: "cannot authenticate jwt"
-      })
+  return (pool: Pool) => {
+
+    const addTodoPool = addTodo(pool)
+    const verifyJwt = verifyJwtFactory({ jwt, secret })
+
+    return async ({ todo, done }: { todo: string, done?: boolean }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
+      const isJwtValid = verifyJwt({ token: headers.auth_token })
+      if (isJwtValid.success) {
+        const createdTodo = await addTodoPool({ todo, done, user_id: isJwtValid.id })
+        return createdTodo
+      } else {
+        return Promise.resolve({
+          error: "cannot authenticate jwt"
+        })
+      }
     }
   }
 }
+
+const addLoggedInTodos = addLoggedInTodosFactory({
+  addTodo,
+  verifyJwtFactory,
+  jwt,
+  secret: process.env.JWT_SECRET
+})
 
 const getOneLoggedInTodoFactory = (dependencies: IGetOneLoggedInTodosFactory) => {
 
-  const { pool,
-    getOneTodoFactory,
+  const {
+    getOneTodo,
     verifyJwtFactory,
     jwt,
     secret } = dependencies
-  const getOneTodo = getOneTodoFactory({ pool })
-  const verifyJwt = verifyJwtFactory({ jwt, secret })
 
-  return async ({ id }: { id: number }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
-    const isJwtValid = verifyJwt({ token: headers.auth_token })
-    const user_id = isJwtValid.id
-    if (isJwtValid.success) {
-      const oneTodo = await getOneTodo({ id, user_id })
-      return oneTodo
-    } else {
-      return Promise.resolve({
-        error: "cannot authenticate jwt"
-      })
+  return (pool: Pool) => {
+    const getOneTodoPool = getOneTodo(pool)
+    const verifyJwt = verifyJwtFactory({ jwt, secret })
+
+    return async ({ id }: { id: number }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
+      const isJwtValid = verifyJwt({ token: headers.auth_token })
+      const user_id = isJwtValid.id
+      if (isJwtValid.success) {
+        const oneTodo = await getOneTodoPool({ id, user_id })
+        return oneTodo
+      } else {
+        return Promise.resolve({
+          error: "cannot authenticate jwt"
+        })
+      }
     }
   }
 }
+
+const getOneLoggedInTodo = getOneLoggedInTodoFactory({
+  getOneTodo,
+  verifyJwtFactory,
+  jwt,
+  secret: process.env.JWT_SECRET
+})
 
 const deleteLoggedInTodoFactory = (dependencies: IDeleteLoggedInTodosFactory) => {
 
-  const { pool,
-    deleteTodoFactory,
+  const {
+    deleteTodo,
     verifyJwtFactory,
     jwt,
     secret } = dependencies
-  const deleteTodo = deleteTodoFactory({ pool })
-  const verifyJwt = verifyJwtFactory({ jwt, secret })
 
-  return async ({ id }: { id: number }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
-    const isJwtValid = verifyJwt({ token: headers.auth_token })
-    const user_id = isJwtValid.id
-    if (isJwtValid.success) {
-      const oneTodo = await deleteTodo({ id, user_id })
-      return oneTodo
-    } else {
-      return Promise.resolve({
-        error: "cannot authenticate jwt"
-      })
+  return (pool: Pool) => {
+    const deleteTodoPool = deleteTodo(pool)
+    const verifyJwt = verifyJwtFactory({ jwt, secret })
+
+    return async ({ id }: { id: number }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
+      const isJwtValid = verifyJwt({ token: headers.auth_token })
+      const user_id = isJwtValid.id
+      if (isJwtValid.success) {
+        const oneTodo = await deleteTodoPool({ id, user_id })
+        return oneTodo
+      } else {
+        return Promise.resolve({
+          error: "cannot authenticate jwt"
+        })
+      }
     }
   }
 }
+
+const deleteLoggedInTodo = deleteLoggedInTodoFactory({
+  deleteTodo,
+  verifyJwtFactory,
+  jwt,
+  secret: process.env.JWT_SECRET
+})
 
 const editLoggedInTodoFactory = (dependencies: IEditLoggedInTodosFactory) => {
 
-  const { pool,
-    editTodoFactory,
+  const { 
+    editTodo,
     verifyJwtFactory,
-    createEditString,
     jwt,
     secret } = dependencies
-  const editTodo = editTodoFactory({ pool, createEditString })
-  const verifyJwt = verifyJwtFactory({ jwt, secret })
-
-  return async ({ id, todo, done }: { id: number, todo?: string, done?: boolean }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
+    
+    return (pool: Pool) => {
+      const editTodoPool = editTodo(pool)
+      const verifyJwt = verifyJwtFactory({ jwt, secret })
+    
+    return async ({ id, todo, done }: { id: number, todo?: string, done?: boolean }, { headers }: { headers: any }): Promise<ITodo | IAuthError> => {
     const isJwtValid = verifyJwt({ token: headers.auth_token })
     const user_id = isJwtValid.id
     if (isJwtValid.success) {
-      const oneTodo = await editTodo({ id, user_id, todo, done })
+      const oneTodo = await editTodoPool({ id, user_id, todo, done })
       return oneTodo
     } else {
       return Promise.resolve({
         error: "cannot authenticate jwt"
       })
     }
-  }
+  }}
 }
 
+const editLoggedInTodo = editLoggedInTodoFactory({ 
+  editTodo,
+  verifyJwtFactory,
+  jwt,
+  secret: process.env.JWT_SECRET
+})
+
 export {
+  addLoggedInTodos,
   addLoggedInTodosFactory,
-  addTodoFactory,
+  addTodo,
   createEditString,
+  deleteLoggedInTodo,
   deleteLoggedInTodoFactory,
-  deleteTodoFactory,
+  deleteTodo,
+  editLoggedInTodo,
   editLoggedInTodoFactory,
+  editTodo,
   editTodoFactory,
+  getLoggedInTodos,
   getLoggedInTodosFactory,
+  getOneLoggedInTodo,
   getOneLoggedInTodoFactory,
-  getOneTodoFactory,
-  getTodosFactory,
+  getOneTodo,
+  getTodos,
 }
