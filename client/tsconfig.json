@@ -6,6 +6,6 @@
     "sourceMap": false,
     "target": "es5",
     "esModuleInterop": true,
-    "jsx": "react",
+    "jsx": "react"
   }
 }

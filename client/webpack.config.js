@@ -7,7 +7,10 @@ module.exports = {
   devtool: "inline-source-map",
   devServer: {
     writeToDisk: true,
-    contentBase: path.join(__dirname, "../dist/app")
+    contentBase: path.join(__dirname, "../dist/app"),
+    proxy: {
+      '/graphql': 'http://localhost:4000'
+    }
   },
   watch: true,
   module: {

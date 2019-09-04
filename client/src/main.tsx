@@ -1,7 +1,7 @@
 import React from 'react'
 import { render } from 'react-dom'
 
-const App = () => <h2>app!</h2>
+import App from './App'
 
 const rootElement = document.getElementById("app");
 render(<App />, rootElement);
