@@ -1,5 +1,14 @@
-import React from 'react'
+import React, { useCallback } from 'react'
+import LogInBanner from '../components/log-in/LogInBanner'
+import LogInBox from '../components/log-in/LogInBox'
 
-const LogIn = () => <h2>LogIn</h2>
+const LogIn = () => {
+  
+  return (
+    <div>
+      <LogInBanner/>
+      <LogInBox/>
+    </div>)
+}
 
 export default LogIn

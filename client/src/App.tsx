@@ -6,10 +6,12 @@ import AppBar from './components/AppBar'
 
 const App: React.FC = () => {
   return <HashRouter>
-    <AppBar/>
-    <Route exact path="/" component={Home} />
-    <Route path="/login" component={LogIn} />
-    <Route path="/splash" component={Splash} />
+    <AppBar />
+    <div>
+      <Route exact path="/" component={Home} />
+      <Route path="/login" component={LogIn} />
+      <Route path="/splash" component={Splash} />
+    </div>
   </HashRouter>
 }
 
