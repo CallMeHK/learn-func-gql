@@ -32,7 +32,7 @@
     "graphql-import": "^0.7.1",
     "graphql-request": "^1.8.2",
     "jest": "^24.9.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "pg": "^7.12.1",
     "ramda": "^0.26.1",
     "react": "^16.9.0",
